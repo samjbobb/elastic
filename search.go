@@ -28,6 +28,7 @@ type SearchService struct {
 	ignoreUnavailable *bool
 	allowNoIndices    *bool
 	expandWildcards   string
+	requestCache      *bool
 }
 
 // NewSearchService creates a new service for searching in Elasticsearch.
@@ -264,6 +265,12 @@ func (s *SearchService) ExpandWildcards(expandWildcards string) *SearchService {
 	return s
 }
 
+// RequestCache indicates whether to cache local results on each shard.
+func (s *SearchService) RequestCache(requestCache bool) *SearchService {
+	s.requestCache = &requestCache
+	return s
+}
+
 // buildURL builds the URL for the operation.
 func (s *SearchService) buildURL() (string, url.Values, error) {
 	var err error
@@ -311,6 +318,9 @@ func (s *SearchService) buildURL() (string, url.Values, error) {
 	}
 	if s.ignoreUnavailable != nil {
 		params.Set("ignore_unavailable", fmt.Sprintf("%v", *s.ignoreUnavailable))
+	}
+	if s.requestCache != nil {
+		params.Set("request_cache", fmt.Sprintf("%v", *s.requestCache))
 	}
 	return path, params, nil
 }

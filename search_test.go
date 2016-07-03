@@ -937,3 +937,43 @@ func TestSearchBuildURL(t *testing.T) {
 		}
 	}
 }
+
+func TestSearchBuildURLParams(t *testing.T) {
+	client := setupTestClient(t)
+
+	_, params, err := client.Search().Index("index1").Type("type1").
+		Pretty(true).
+		SearchType("dfs_query_then_fetch").
+		Routing("node1").
+		AllowNoIndices(true).
+		ExpandWildcards("open").
+		IgnoreUnavailable(true).
+		Preference("_replica").
+		RequestCache(true).
+		buildURL()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedParams := map[string]string{
+		"pretty":             "true",
+		"search_type":        "dfs_query_then_fetch",
+		"routing":            "node1",
+		"allow_no_indices":   "true",
+		"expand_wildcards":   "open",
+		"ignore_unavailable": "true",
+		"preference":         "_replica",
+		"request_cache":      "true",
+	}
+
+	if got, want := len(params), len(expectedParams); got != want {
+		t.Errorf("expected len(params) = %d; got %d", want, got)
+	}
+
+	for param, expected := range expectedParams {
+		if got, want := params.Get(param), expected; got != want {
+			t.Errorf("expected param %s = %s; got %s", param, want, got)
+		}
+	}
+}
